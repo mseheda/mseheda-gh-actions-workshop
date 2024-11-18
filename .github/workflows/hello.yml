@@ -1,17 +1,17 @@
-name: Hello World Training Workflow
+name: Issue and Dispatch Workflow
 
 on:
   workflow_dispatch:
+  issues:
+    types: [opened, edited]
 
 jobs:
   greet:
-    env:
-      MY_ENV: "John Doe"
     runs-on: ubuntu-latest
     steps:
-      - name: Greet the User
-        run: echo "Hello World!"
-      - name: Run a multi-line script
+      - name: Display Trigger
         run: |
-          echo "Hello $MY_ENV"
-          echo "Hello $GITHUB_ACTOR"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "Issue Action: ${{ github.event.action }}"
+      - name: Show Actor
+        run: echo "Action performed by: $GITHUB_ACTOR"
