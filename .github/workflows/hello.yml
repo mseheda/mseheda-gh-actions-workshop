@@ -14,4 +14,5 @@ jobs:
           echo "Triggered by: ${{ github.event_name }}"
           echo "Issue Action: ${{ github.event.action }}"
       - name: Show Actor
-        run: echo "Action performed by: $GITHUB_ACTOR"
+        run: |
+          echo "Action performed by: $GITHUB_ACTOR"
