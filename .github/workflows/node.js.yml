@@ -97,4 +97,4 @@ jobs:
           region: westeurope
           deploymentName: aw-deployment-20241119-deployment
           template: ./infra/main.bicep
-          parameters: "containerImage=${{ needs.package-and-publish.outputs.container }} actor=${{ github.actor }} appName=awresourcetest} repository=${{ github.repository }}"
+          parameters: "containerImage=${{ needs.package-and-publish.outputs.container }} actor=${{ github.actor }} appName=awresourcetest repository=${{ github.repository }}"
