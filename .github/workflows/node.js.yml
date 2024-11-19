@@ -95,6 +95,6 @@ jobs:
         with:
           scope: subscription
           region: westeurope
-          deploymentName: ${{ vars.APP_NAME }}-deployment
+          deploymentName: aw-deployment-20241119-deployment
           template: ./infra/main.bicep
           parameters: "containerImage=${{ needs.package-and-publish.outputs.container }} actor=${{ github.actor }} appName=aw-${{ vars.APP_NAME }} repository=${{ github.repository }}"
