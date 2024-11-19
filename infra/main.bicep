@@ -1,66 +1,40 @@
-@description('Specifies the environment for the resources.')
-param env string = 'staging'
+@description('The Azure location to create the resources in')
+param location string = 'westeurope'
 
-@description('Specifies the location for resource group.')
-param location string = 'southcentralus'
+@description('Name for the serviceplan and webapp (defines the subdomain)')
+param appName string
 
-@description('Specifies the location of the container app environment - not all regions are supported.')
-param containerAppEnvLocation string = 'eastus'
-
-@description('Specifies the name prefix of the container app.')
-param containerAppName string = 'octocollector'
-
-@description('Specifies the name of the container image.')
+@description('The container image to deploy')
 param containerImage string
 
-@description('Specifies the container port.')
-param containerPort int = 8080
+@description('The actor (GitHUb username) that started the deployment')
+param actor string
 
-// ============================
+@description('The repository that started the deployment')
+param repository string
+
 targetScope = 'subscription'
 
-resource rg 'Microsoft.Resources/resourceGroups@2021-01-01' = {
-  name: 'rg-octocollector-${env}'
+resource resourceGroup 'Microsoft.Resources/resourceGroups@2022-09-01' = {
+  name: '${appName}-rg'
   location: location
-}
-
-var lawName = 'law-${env}'
-var containerAppEnvName = 'cappenv${env}'
-
-module law 'law.bicep' = {
-  scope: rg
-  name: 'law'
-  params: {
-    location: location
-    name: lawName
+  tags: {
+    actor: actor
+    purpose: 'GitHub Actions workshop'
+    repository: repository
   }
 }
 
-module containerAppEnvironment 'container-app-environment.bicep' = {
-  scope: rg
-  name: 'container-app-environment'
+module webApp 'web-app.bicep' = {
+  name: 'web-app'
+  scope: resourceGroup
   params: {
-    name: containerAppEnvName
-    location: containerAppEnvLocation
-    lawCustomerId: law.outputs.customerId
-    lawId: law.outputs.id
-    lawApiVersion: law.outputs.apiVersion
-  }
-}
-
-module containerApp 'container-app.bicep' = {
-  scope: rg
-  name: 'container-app'
-  params: {
-    name: containerAppName
-    location: containerAppEnvLocation
-    containerAppEnvironmentId: containerAppEnvironment.outputs.id
+    appName: appName
     containerImage: containerImage
-    containerPort: containerPort
-    envVars: []
-    useExternalIngress: true
+    location: location
+    actor: actor
+    repository: repository
   }
 }
 
-@description('FQDN of the container app.')
-output fqdn string = containerApp.outputs.fqdn
+output url string = webApp.outputs.url
