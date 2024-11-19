@@ -1,13 +1,16 @@
 @description('The Azure location to create the resources in')
 param location string = 'westeurope'
 
-@description('Name for the serviceplan and webapp (defines the subdomain)')
+@description('Name for the service plan and web app (defines the subdomain)')
+@minLength(3)
+@maxLength(64)
+@regex('^[a-zA-Z0-9-]+$') // Alphanumeric and hyphen only
 param appName string
 
 @description('The container image to deploy')
 param containerImage string
 
-@description('The actor (GitHUb username) that started the deployment')
+@description('The actor (GitHub username) that started the deployment')
 param actor string
 
 @description('The repository that started the deployment')
@@ -15,6 +18,7 @@ param repository string
 
 targetScope = 'subscription'
 
+// Resource group definition
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   name: '${appName}-rg'
   location: location
@@ -25,6 +29,7 @@ resource resourceGroup 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   }
 }
 
+// Web app deployment module
 module webApp 'web-app.bicep' = {
   name: 'web-app'
   scope: resourceGroup
@@ -37,4 +42,5 @@ module webApp 'web-app.bicep' = {
   }
 }
 
-output url string = webApp.outputs.url
+// Output the web app URL
+output url string = 'https://${appName}.azurewebsites.net'
