@@ -2,9 +2,9 @@
 param location string = 'westeurope'
 
 @description('Name for the service plan and web app (defines the subdomain)')
-@minLength(3)
-@maxLength(64)
-@regex('^[a-zA-Z0-9-]+$') // Alphanumeric and hyphen only
+@minLength(3) // Ensures at least 3 characters
+@maxLength(64) // Ensures no more than 64 characters
+// NOTE: The appName must follow Azure naming rules: alphanumeric or hyphen only, cannot start/end with hyphen.
 param appName string
 
 @description('The container image to deploy')
