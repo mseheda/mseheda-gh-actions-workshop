@@ -28,11 +28,38 @@ jobs:
         scp -o StrictHostKeyChecking=no -i ec2_key.pem deployment.yaml ubuntu@${{ secrets.EC2_PUBLIC_IP }}:/home/ubuntu/
         scp -o StrictHostKeyChecking=no -i ec2_key.pem service.yaml ubuntu@${{ secrets.EC2_PUBLIC_IP }}:/home/ubuntu/
 
+    - name: Start Minikube
+      run: |
+        ssh -o StrictHostKeyChecking=no -i ec2_key.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} <<EOF
+        minikube start --driver=docker --memory=2048 --cpus=2
+        EOF
+
+    - name: Configure kubectl for Minikube
+      run: |
+        ssh -o StrictHostKeyChecking=no -i ec2_key.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} <<EOF
+        kubectl config use-context minikube
+        kubectl get nodes
+        EOF
+
+    - name: Validate YAML Manifests
+      run: |
+        ssh -o StrictHostKeyChecking=no -i ec2_key.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} <<EOF
+        kubectl apply --dry-run=client -f /home/ubuntu/deployment.yaml
+        kubectl apply --dry-run=client -f /home/ubuntu/service.yaml
+        EOF
+
     - name: Deploy to Minikube
       run: |
         ssh -o StrictHostKeyChecking=no -i ec2_key.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} <<EOF
         kubectl apply -f /home/ubuntu/deployment.yaml
         kubectl apply -f /home/ubuntu/service.yaml
+        EOF
+
+    - name: Verify Deployment
+      run: |
+        ssh -o StrictHostKeyChecking=no -i ec2_key.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} <<EOF
+        kubectl get pods
+        kubectl get services
         EOF
 
     - name: Cleanup
