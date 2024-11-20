@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rocketdex
+  labels:
+    app: rocketdex
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rocketdex
+  template:
+    metadata:
+      labels:
+        app: rocketdex
+    spec:
+      containers:
+      - name: rocketdex
+        image: ghcr.io/mseheda/mseheda-gh-actions-workshop:a4b77e0
+        ports:
+        - containerPort: 8080
