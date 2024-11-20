@@ -1,4 +1,4 @@
-name: Deploy to EKS
+name: Deploy to Minikube
 
 on:
   push:
@@ -13,18 +13,28 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v2
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
-
-    - name: Update kubeconfig
+        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+        
+    - name: Write SSH Key to File
       run: |
-        aws eks update-kubeconfig --name my-cluster --region us-east-1
+        echo "${{ secrets.EC2_SSH_KEY }}" > ec2_key.pem
+        chmod 600 ec2_key.pem
 
-    - name: Deploy to EKS
+    - name: Copy Manifests to EC2
       run: |
-        kubectl apply -f deployment.yaml
-        kubectl apply -f service.yaml
+        scp -o StrictHostKeyChecking=no -i ec2_key.pem deployment.yaml ubuntu@${{ secrets.EC2_PUBLIC_IP }}:/home/ubuntu/
+        scp -o StrictHostKeyChecking=no -i ec2_key.pem service.yaml ubuntu@${{ secrets.EC2_PUBLIC_IP }}:/home/ubuntu/
+
+    - name: Deploy to Minikube
+      run: |
+        ssh -o StrictHostKeyChecking=no -i ec2_key.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} <<EOF
+        kubectl apply -f /home/ubuntu/deployment.yaml
+        kubectl apply -f /home/ubuntu/service.yaml
+        EOF
+
+    - name: Cleanup
+      run: |
+        rm -f ec2_key.pem
